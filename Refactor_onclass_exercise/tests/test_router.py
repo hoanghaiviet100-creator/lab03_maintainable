@@ -4,6 +4,10 @@ from assistant_core.models import Intent
 def test_route_greeting():
     assert route("hi", {"library"}) == Intent.GREETING
 
+def test_route_help():
+    assert route("help", {"library"}) == Intent.HELP
+    assert route("what can you do", {"library"}) == Intent.HELP
+
 def test_route_fee():
     assert route("tuition for 18 credits", {"library"}) == Intent.FEE
 

@@ -7,6 +7,11 @@ def test_handle_greeting(service):
     assert res.intent == Intent.GREETING
     assert "help with offices" in res.answer
 
+def test_handle_help(service):
+    res = service.handle(Message(text="help"))
+    assert res.intent == Intent.HELP
+    assert "Tuition calculation" in res.answer
+
 def test_handle_fee(service):
     res = service.handle(Message(text="tuition for 18 credits and 2 retake"))
     assert res.intent == Intent.FEE
