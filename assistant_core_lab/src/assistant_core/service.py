@@ -5,8 +5,8 @@ from assistant_core.errors import ProviderError
 from assistant_core.router import route
 from assistant_core.responder import TemplateResponder
 
-# Khởi tạo logger để dùng cho dòng log.warning(...)
 log = logging.getLogger(__name__)
+
 class AssistantService:
     def __init__(self, settings, offices, handbook, responder):
         self.settings, self.offices, self.handbook = settings, offices, handbook
