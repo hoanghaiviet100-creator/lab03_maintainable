@@ -29,7 +29,7 @@ def create_app(
     weather = weather or WeatherClient(
         settings.weather_url, settings.campus_lat, settings.campus_lon, timeout_s=settings.weather_timeout_s
     )
-    limiter = RateLimiter(settings.rate_limit_per_min)  # used only in the BONUS task
+    limiter = RateLimiter(settings.rate_limit_per_min)
     feedback_store: list[FeedbackOut] = []  # Lab 5 replaces this with a database
 
     app = FastAPI(
@@ -64,28 +64,39 @@ def create_app(
         responses={422: {"model": ErrorResponse}, 429: {"model": ErrorResponse}},
     )
     def chat(req: ChatRequest, request: Request) -> ChatResponse:
-        # BONUS: rate limiting (see tutorial Part F). Leave it for later.
-        # TODO T1 (2 lines):
-        #   1. resp = service.handle(Message(text=req.message, session_id=req.session_id))
-        #   2. return ChatResponse(**resp.model_dump(), request_id=uuid.uuid4().hex[:12])
-        raise NotImplementedError("T1")
+        client = request.client.host if request.client else "unknown"
+        if not limiter.allow(client):
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many requests")
+        # T1: gọi service và trả về ChatResponse với request_id ngẫu nhiên
+        resp = service.handle(Message(text=req.message, session_id=req.session_id))
+        return ChatResponse(**resp.model_dump(), request_id=uuid.uuid4().hex[:12])
 
     @app.post("/v1/feedback", response_model=FeedbackOut, status_code=201, tags=["feedback"])
     def add_feedback(fb: FeedbackIn) -> FeedbackOut:
+        # T2: tạo FeedbackOut với id tự tăng và timestamp UTC, lưu vào store
         item = FeedbackOut(**fb.model_dump(), id=len(feedback_store) + 1, created_at=datetime.now(timezone.utc))
         feedback_store.append(item)
         return item
 
     @app.get("/v1/feedback", response_model=list[FeedbackOut], tags=["feedback"], dependencies=[Depends(require_admin)])
     def list_feedback() -> list[FeedbackOut]:
-        # TODO T3 (1 line): return the list. The API-key check is already done by `require_admin` above.
-        raise NotImplementedError("T3")
+        # T3: trả về toàn bộ danh sách (require_admin đã xử lý xác thực)
+        return feedback_store
 
     @app.get("/v1/weather", response_model=Weather, tags=["external"], responses={503: {"model": ErrorResponse}})
     def campus_weather() -> Weather:
-        # TODO T4 (4 lines): call weather.current() inside try/except.
-        #   If ExternalServiceError happens, raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
-        #   "Weather service unavailable") from None
-        raise NotImplementedError("T4")
+        # T4: gọi weather.current() và bắt ExternalServiceError → 503
+        try:
+            return weather.current()
+        except ExternalServiceError:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Weather service unavailable") from None
+
+    # H1: GET /v1/offices — trả về danh sách văn phòng sắp xếp theo tên
+    @app.get("/v1/offices", tags=["offices"])
+    def list_offices() -> list[dict]:
+        return [
+            {"name": o.name, "room": o.room, "hours": o.hours}
+            for o in service.offices.all()
+        ]
 
     return app
