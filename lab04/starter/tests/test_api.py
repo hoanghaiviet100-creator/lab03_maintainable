@@ -37,7 +37,6 @@ def test_chat_validation_error(client):
     assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_request"
 
 
-@pytest.mark.skip(reason="BONUS task — remove this line when you add rate limiting")
 def test_rate_limit(client):
     codes = [client.post("/v1/chat", json={"message": "hi"}).status_code for _ in range(6)]
     assert codes[-1] == 429
@@ -82,3 +81,45 @@ def test_weather_stale_cache_when_upstream_fails():
     w.cache_ttl_s = 0  # force a refresh on the second call
     assert not w.current().stale
     assert w.current().stale
+
+
+def test_offices_ok(client):
+    r = client.get("/v1/offices")
+    assert r.status_code == 200
+    offices = r.json()
+    assert offices
+    assert all(set(office) == {"name", "room", "hours"} for office in offices)
+    assert [office["name"] for office in offices] == sorted(office["name"] for office in offices)
+
+
+def test_offices_contains_library(client):
+    assert any(office["name"] == "Library" for office in client.get("/v1/offices").json())
+
+
+def test_chat_rate_limit_boundary_and_error(client):
+    for _ in range(5):
+        assert client.post("/v1/chat", json={"message": "hi"}).status_code == 200
+    r = client.post("/v1/chat", json={"message": "hi"})
+    assert r.status_code == 429
+    assert r.json() == {"error": {"code": "too_many_requests", "message": "Too many requests"}}
+    assert client.get("/health").status_code == 200
+
+
+def test_unknown_route_error_envelope(client):
+    r = client.get("/v1/nope")
+    assert r.status_code == 404
+    assert r.json() == {"error": {"code": "not_found", "message": "Not Found"}}
+
+
+def test_method_not_allowed_preserves_header(client):
+    r = client.post("/health")
+    assert r.status_code == 405
+    assert r.headers["allow"] == "GET"
+    assert r.json()["error"]["code"] == "method_not_allowed"
+
+
+@pytest.mark.parametrize("message, intent", [("help", "help"), ("where is IT Helpdesk", "office")])
+def test_chat_preserves_help_and_office_routing(client, message, intent):
+    r = client.post("/v1/chat", json={"message": message})
+    assert r.status_code == 200
+    assert r.json()["intent"] == intent
