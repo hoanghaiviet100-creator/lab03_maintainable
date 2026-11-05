@@ -83,7 +83,7 @@ def test_weather_stale_cache_when_upstream_fails():
     assert w.current().stale
 
 
-# ── H1: GET /v1/offices ────────────────────────────────────────────────────
+# ── H1: GET /v1/offices ───────────────────────────────────────────────────
 
 def test_offices_status_200(client):
     """H1 test 1: endpoint returns HTTP 200."""
