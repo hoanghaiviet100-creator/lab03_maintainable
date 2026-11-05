@@ -82,3 +82,18 @@ def test_weather_stale_cache_when_upstream_fails():
     w.cache_ttl_s = 0  # force a refresh on the second call
     assert not w.current().stale
     assert w.current().stale
+
+
+# ── H1: GET /v1/offices ────────────────────────────────────────────────────
+
+def test_offices_status_200(client):
+    """H1 test 1: endpoint returns HTTP 200."""
+    r = client.get("/v1/offices")
+    assert r.status_code == 200
+
+
+def test_offices_contains_library(client):
+    """H1 test 2: response includes the Library office."""
+    r = client.get("/v1/offices")
+    names = [office["name"] for office in r.json()]
+    assert "Library" in names
