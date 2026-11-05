@@ -9,7 +9,7 @@ from assistant_core.errors import InvalidRequest
 
 def parse_credits(text: str) -> tuple[int, int]:
     """Extract (credits, retake_credits) from text like 'fee for 18 credits and 2 retake'."""
-    retake = re.search(r"(\d+)\s*retake", text, re.IGNORECASE)
+    retake = re.search(r"(\d+)\s*retake", text)
     numbers = [int(n) for n in re.findall(r"\d+", text)]
     retake_n = int(retake.group(1)) if retake else 0
     others = numbers.copy()

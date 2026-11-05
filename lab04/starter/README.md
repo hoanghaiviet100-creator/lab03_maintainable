@@ -20,30 +20,30 @@ Open http://127.0.0.1:8000/docs for the interactive OpenAPI documentation.
 | POST | `/v1/feedback` | `{"request_id": str, "rating": -1/0/1, "comment"?: str ≤500}` | 201 feedback with `id`, `created_at` | 422 |
 | GET | `/v1/feedback` | header `X-API-Key` | 200 list | 401 |
 | GET | `/v1/weather` | — | 200 `{temperature_c, wind_kmh, description, observed_at, stale}` | 503 upstream down |
-| GET | `/v1/offices` | — | 200 `[{name, room, hours}, ...]`, sorted by name | — |
 
 All errors use one shape: `{"error": {"code": "...", "message": "..."}}`.
 
 ## Tests
 ```
 pytest -q                          # unit + API tests (external API mocked)
-python -m ruff check .
 bash api-tests/curl_tests.sh       # manual tests against a running server
 ```
 Postman / Bruno: import `api-tests/study-assistant.postman_collection.json`.
 
-Run these commands from `lab04/starter`. Set `API_ADMIN_KEY` in the server environment
-and the curl environment to the same value for the authenticated feedback check.
-`POST /v1/chat` allows `RATE_LIMIT_PER_MIN` requests per client in a rolling minute
-(default: 30); further requests return 429 with `error.code = "too_many_requests"`.
+## D–T4 — Weather API (Bảo Hưng)
 
-From the repository root, also run the warm-up and the unchanged Week 3 tests:
+`GET /v1/weather` calls the provided `WeatherClient.current()`. The existing client
+handles timeout, retries and cached fallback; if it raises `ExternalServiceError`,
+the endpoint returns HTTP 503 with `error.code = "weather_service_unavailable"`.
+
+Run the existing weather tests from `lab04/starter`:
 ```
-python -m pytest -q -o pythonpath=lab04/practice lab04/practice
-python -m pytest -q -c lab04/starter/pyproject.toml Refactor_onclass_exercise/tests
+python -m pytest -q tests/test_api.py -k weather
+python -m ruff check .
 ```
-The second command runs the team's Week 3 tests against the Lab 4 core, including
-the existing HELP behavior. Week 3 source and test files are preserved.
+The other API tasks and their tests are assigned to the other team members.
+The full test suite and Ruff still report unfinished starter tasks outside T4
+until those changes are integrated.
 
 ## H2 — Reflection
 

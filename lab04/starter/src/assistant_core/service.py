@@ -42,22 +42,10 @@ class AssistantService:
     def _dispatch(self, intent: Intent, text: str) -> Response:
         if intent is Intent.GREETING:
             return Response(answer="Hello! I can help with offices, fees and rules.", intent=intent)
-        if intent is Intent.HELP:
-            return Response(
-                answer=(
-                    "I can assist you with:\n"
-                    "1. Office locations & hours (e.g. 'where is library')\n"
-                    "2. Tuition calculation (e.g. 'tuition for 18 credits')\n"
-                    "3. Regulations & handbook rules (e.g. 'thesis credits')"
-                ),
-                intent=intent,
-            )
         if intent is Intent.FEE:
             return self._fee(text)
         if intent is Intent.OFFICE:
             o = self.offices.find(text)
-            if o is None:
-                return Response(answer="Office not found.", intent=Intent.UNKNOWN)
             return Response(answer=f"{o.name}: room {o.room}, open {o.hours}.", intent=intent)
         return self._rule(text)
 
