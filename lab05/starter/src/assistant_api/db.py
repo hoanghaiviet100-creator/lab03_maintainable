@@ -82,6 +82,11 @@ class Repository:
         latency_ms: float,
     ) -> None:
         sid = hash_session(raw_session, self.salt)
+
+        with Session(self.engine) as db:
+            if db.get(ChatSession, sid) is None:
+                db.add(ChatSession(id=sid))
+
         with Session(self.engine) as db:  # one transaction
             if db.get(ChatSession, sid) is None:
                 db.add(ChatSession(id=sid))
@@ -96,6 +101,80 @@ class Repository:
                     latency_ms=latency_ms,
                 )
             )
+
+            db.commit()
+
+    def add_feedback(
+        self,
+        request_id: str,
+        rating: int,
+        comment: str | None
+    ) -> Feedback | None:
+        with Session(self.engine) as db:
+            exists = db.exec(
+                select(Interaction).where(
+                    Interaction.request_id == request_id
+                )
+            ).first()
+
+            if exists is None:
+                return None
+
+            # R1
+            fb = Feedback(
+                request_id=request_id,
+                rating=rating,
+                comment=comment
+            )
+
+            db.add(fb)
+            db.commit()
+            db.refresh(fb)
+
+            return fb
+
+    def list_feedback(self, limit: int = 100) -> list[Feedback]:
+        with Session(self.engine) as db:
+            # R2
+            statement = (
+                select(Feedback)
+                .order_by(Feedback.created_at.desc())
+                .limit(limit)
+            )
+
+            return list(db.exec(statement).all())
+
+    def intent_stats(self) -> list[dict]:
+        """Requests, average latency and unresolved rate per intent."""
+
+        with Session(self.engine) as db:
+            unresolved = func.sum(
+                case((Interaction.resolved.is_(False), 1), else_=0)
+            )
+
+            q = (
+                select(
+                    Interaction.intent,
+                    func.count(),
+                    func.avg(Interaction.latency_ms),
+                    unresolved
+                )
+                .group_by(Interaction.intent)
+                .order_by(func.count().desc())
+            )
+
+            rows = db.exec(q).all()
+
+        return [
+            {
+                "intent": i,
+                "requests": n,
+                "avg_latency_ms": round(avg or 0, 1),
+                "unresolved": int(u or 0)
+            }
+            for i, n, avg, u in rows
+        ]
+
             db.commit()
 
     def add_feedback(self, request_id: str, rating: int, comment: str | None) -> Feedback | None:
