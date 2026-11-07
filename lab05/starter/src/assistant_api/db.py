@@ -87,6 +87,9 @@ class Repository:
             if db.get(ChatSession, sid) is None:
                 db.add(ChatSession(id=sid))
 
+        with Session(self.engine) as db:  # one transaction
+            if db.get(ChatSession, sid) is None:
+                db.add(ChatSession(id=sid))
             db.add(
                 Interaction(
                     request_id=request_id,
@@ -172,3 +175,37 @@ class Repository:
             for i, n, avg, u in rows
         ]
 
+            db.commit()
+
+    def add_feedback(self, request_id: str, rating: int, comment: str | None) -> Feedback | None:
+        with Session(self.engine) as db:
+            exists = db.exec(select(Interaction).where(Interaction.request_id == request_id)).first()
+            if exists is None:
+                return None          # the API turns this into 404
+            # TODO R1 (4 lines) — follow record_interaction above:
+            #   fb = Feedback(request_id=request_id, rating=rating, comment=comment)
+            #   db.add(fb); db.commit(); db.refresh(fb)   # refresh loads the new id from the database
+            #   return fb
+            raise NotImplementedError("R1")
+
+    def list_feedback(self, limit: int = 100) -> list[Feedback]:
+        with Session(self.engine) as db:
+            # TODO R2 (1 line): newest first, at most `limit` rows. SQL would be:
+            #   SELECT * FROM feedback ORDER BY created_at DESC LIMIT ?
+            # In SQLModel: select(Feedback).order_by(Feedback.created_at.desc()).limit(limit)
+            raise NotImplementedError("R2")
+
+    def intent_stats(self) -> list[dict]:
+        """Requests, average latency and unresolved rate per intent."""
+        with Session(self.engine) as db:
+            unresolved = func.sum(case((Interaction.resolved.is_(False), 1), else_=0))
+            q = (
+                select(Interaction.intent, func.count(), func.avg(Interaction.latency_ms), unresolved)
+                .group_by(Interaction.intent)
+                .order_by(func.count().desc())
+            )
+            rows = db.exec(q).all()
+        return [
+            {"intent": i, "requests": n, "avg_latency_ms": round(avg or 0, 1), "unresolved": int(u or 0)}
+            for i, n, avg, u in rows
+        ]
