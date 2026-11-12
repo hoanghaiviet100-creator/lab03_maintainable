@@ -25,15 +25,46 @@ SELECT COUNT(*) FROM students;
 SELECT program, COUNT(*) FROM students GROUP BY program ORDER BY program;
 
 -- Q9  (average grade in CSC10004, rounded to 2 decimals)
-
+SELECT AVG(grade)
+FROM enrollments
+WHERE course_code = 'CSC10004';
 -- Q10 (student_id and course_code of enrollments without a grade, by student_id)
-
+SELECT student_id, course_code
+FROM enrollments
+WHERE grade IS NULL
+ORDER BY student_id;
 -- Q11 (name and grade of graded students in CSC10014, by name)
-
+SELECT s.name, e.grade
+FROM enrollments e
+JOIN students s ON s.id = e.student_id
+WHERE e.course_code = 'CSC10014' AND e.grade IS NOT NULL
+ORDER BY s.name;
 -- Q12 (course title and number of enrolled students, most first, then by title)
-
+SELECT courses.title, temp.cnt
+FROM (
+    SELECT enrollments.course_code, COUNT(*) AS cnt
+    FROM enrollments
+    GROUP BY course_code
+) temp
+JOIN courses ON courses.code = temp.course_code
+ORDER BY temp.cnt DESC, courses.title;
 -- Q13 (names of students with a grade below 5, by name)
-
+SELECT DISTINCT students.name
+FROM students
+JOIN enrollments ON students.id = enrollments.student_id
+WHERE enrollments.grade < 5;
 -- Q14 (each student's name and total credits enrolled, most first, then by name)
-
+SELECT students.name, SUM(courses.credits) AS cred
+FROM students
+JOIN enrollments ON students.id = enrollments.student_id
+JOIN courses ON enrollments.course_code = courses.code
+GROUP BY students.name
+ORDER BY cred DESC, students.name;
 -- Q15 (names of students NOT enrolled in CSC10014, by name)
+SELECT s.name
+FROM students s
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM enrollments e
+    WHERE e.student_id = s.id AND e.course_code = 'CSC10014'
+);
