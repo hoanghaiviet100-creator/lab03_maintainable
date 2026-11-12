@@ -2,20 +2,28 @@
 -- Check with:  python check.py
 -- Q1  (all columns of all students)
 SELECT * FROM students;
+
 -- Q2  (name and year of every student)
 SELECT name, year FROM students;
+
 -- Q3  (names of CS students)
 SELECT name FROM students WHERE program = 'CS';
+
 -- Q4  (name and year of students in year 3 or higher)
 SELECT name, year FROM students WHERE year >= 3;
+
 -- Q5  (student names, Z to A)
 SELECT name FROM students ORDER BY name DESC;
+
 -- Q6  (title and credits of 4-credit courses, by title)
 SELECT title, credits FROM courses WHERE credits = 4 ORDER BY title;
+
 -- Q7  (how many students?)
 SELECT COUNT(*) FROM students;
+
 -- Q8  (number of students per program, by program)
-SELECT program, COUNT(*) FROM students GROUP BY program;
+SELECT program, COUNT(*) FROM students GROUP BY program ORDER BY program;
+
 -- Q9  (average grade in CSC10004, rounded to 2 decimals)
 SELECT AVG(grade)
 FROM enrollments
