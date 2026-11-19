@@ -9,10 +9,15 @@ venv/
 env/
 ENV/
 
-# Environment variables & Secrets (Quan trọng: Không bao giờ commit secret lên Git)
+# Environment variables & Secrets (Never commit secrets to Git)
 .env
 .env.local
 .env.*.local
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
 
 # Build & Packaging
 build/
