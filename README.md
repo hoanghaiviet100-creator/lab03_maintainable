@@ -1,4 +1,4 @@
-# Study Assistant — Unified Project (Labs 3–6)
+# Smart assistant — Unified Project (Labs 3–6)
 
 ## Setup
 ```
