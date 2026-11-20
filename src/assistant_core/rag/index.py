@@ -24,7 +24,11 @@ STOP = frozenset(
 
 
 def tokenize(text: str) -> list[str]:
-    return [t for t in re.findall(r"\w+", text.lower()) if t not in STOP]
+    return [
+        word[:-1] if len(word) > 4 and word.endswith("s") else word
+        for word in re.findall(r"\w+", text.lower())
+        if word not in STOP
+    ]
 
 
 @dataclass(frozen=True)
