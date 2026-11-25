@@ -1,4 +1,4 @@
-# Smart assistant — Unified Project (Labs 3–6)
+# Study Assistant (Lab 7 reference)
 
 ## Setup
 ```
@@ -21,7 +21,6 @@ Open http://127.0.0.1:8000/docs for the interactive OpenAPI documentation.
 | GET | `/v1/feedback` | header `X-API-Key` | 200 list | 401 |
 | GET | `/v1/stats/intents` | header `X-API-Key` | 200 `[{intent, requests, avg_latency_ms, unresolved}]` | 401 |
 | GET | `/v1/weather` | — | 200 `{temperature_c, wind_kmh, description, observed_at, stale}` | 503 upstream down |
-| GET | `/v1/offices` | — | 200 `[{name, room, hours}]` sorted by name | — |
 
 All errors use one shape: `{"error": {"code": "...", "message": "..."}}`.
 
@@ -41,6 +40,13 @@ LLM_PROVIDER=ollama LLM_MODEL=llama3.2 python -m assistant_core "..."     # loca
 python eval/compare_paths.py                                              # deterministic vs retrieval vs LLM
 ```
 `/v1/chat` responses now include `path` (deterministic | retrieval | llm | tool | abstain), `escalate` and `confidence`.
+
+## User interface (Lab 7)
+Start the API first, then in a second terminal:
+```
+streamlit run ui/app.py            # opens http://localhost:8501
+```
+The UI talks to the backend only through HTTP (`ui/api_client.py`). Set `ASSISTANT_API_URL` if the API is not on port 8000.
 
 ## Tests
 ```
