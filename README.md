@@ -21,7 +21,6 @@ Open http://127.0.0.1:8000/docs for the interactive OpenAPI documentation.
 | GET | `/v1/feedback` | header `X-API-Key` | 200 list | 401 |
 | GET | `/v1/stats/intents` | header `X-API-Key` | 200 `[{intent, requests, avg_latency_ms, unresolved}]` | 401 |
 | GET | `/v1/weather` | — | 200 `{temperature_c, wind_kmh, description, observed_at, stale}` | 503 upstream down |
-| GET | `/v1/offices` | — | 200 `[{name, room, hours}]` sorted by name | — |
 
 All errors use one shape: `{"error": {"code": "...", "message": "..."}}`.
 

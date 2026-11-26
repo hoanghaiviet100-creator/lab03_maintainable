@@ -4,8 +4,8 @@ from pathlib import Path
 import httpx
 from streamlit.testing.v1 import AppTest
 
-from ui.api_client import AssistantClient
-from ui.logic import validate_input
+from ui.api_client import AssistantClient, ChatResult
+from ui.logic import format_sources, status_note, validate_input
 
 APP_PATH = str(Path(__file__).resolve().parents[1] / "ui" / "app.py")
 
@@ -129,3 +129,11 @@ def test_app_thumbs_down_sends_negative_feedback(monkeypatch):
     assert not at.exception
     assert votes == [(OK["request_id"], -1)]
     assert OK["request_id"] in at.session_state["rated"]
+def test_format_sources():
+    assert format_sources([]) == ""
+    assert format_sources(OK["sources"]) == "Sources: S26#1 — 1 Library borrowing"
+
+
+def test_status_note():
+    assert "Training Office" in status_note(ChatResult(ok=True, escalate=True))
+    assert status_note(ChatResult(ok=True)) is None
