@@ -4,8 +4,8 @@ from pathlib import Path
 import httpx
 from streamlit.testing.v1 import AppTest
 
-from ui.api_client import AssistantClient
-from ui.logic import validate_input
+from ui.api_client import AssistantClient, ChatResult
+from ui.logic import format_sources, status_note, validate_input
 
 APP_PATH = Path(__file__).resolve().parents[1] / "ui" / "app.py"
 
@@ -109,3 +109,13 @@ def test_app_healthy_and_session_id_persists(monkeypatch):
     assert isinstance(sid, str) and len(sid) == 12
     at.run()
     assert at.session_state["session_id"] == sid
+
+
+def test_format_sources():
+    assert format_sources([]) == ""
+    assert format_sources(OK["sources"]) == "Sources: S26#1 — 1 Library borrowing"
+
+
+def test_status_note():
+    assert "Training Office" in status_note(ChatResult(ok=True, escalate=True))
+    assert status_note(ChatResult(ok=True)) is None
