@@ -7,7 +7,7 @@ from streamlit.testing.v1 import AppTest
 from ui.api_client import AssistantClient
 from ui.logic import validate_input
 
-APP_PATH = Path(__file__).resolve().parents[1] / "ui" / "app.py"
+APP_PATH = str(Path(__file__).resolve().parents[1] / "ui" / "app.py")
 
 OK = {
     "answer": "Room B.201",
@@ -109,3 +109,23 @@ def test_app_healthy_and_session_id_persists(monkeypatch):
     assert isinstance(sid, str) and len(sid) == 12
     at.run()
     assert at.session_state["session_id"] == sid
+
+
+def test_app_thumbs_down_sends_negative_feedback(monkeypatch):
+    votes = []
+
+    def send_feedback(self, request_id, rating):
+        votes.append((request_id, rating))
+        return True
+
+    monkeypatch.setattr(AssistantClient, "healthy", lambda self: True)
+    monkeypatch.setattr(AssistantClient, "send_feedback", send_feedback)
+    at = AppTest.from_file(APP_PATH)
+    at.session_state["messages"] = [
+        {"role": "assistant", "content": OK["answer"], "request_id": OK["request_id"]}
+    ]
+    at.run().button(key="down0").click().run()
+
+    assert not at.exception
+    assert votes == [(OK["request_id"], -1)]
+    assert OK["request_id"] in at.session_state["rated"]
