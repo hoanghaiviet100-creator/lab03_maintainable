@@ -90,6 +90,7 @@ def test_healthy():
 def test_validate_input():
     assert validate_input("   ") == "Please type a question."
     assert validate_input("x" * 2001).startswith("Your question is too long")
+    assert "English" in validate_input("tôi có thể đăng ký khóa luận không?")
     assert validate_input("hello") is None
 
 

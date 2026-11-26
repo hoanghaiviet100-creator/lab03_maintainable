@@ -57,7 +57,7 @@ for i, m in enumerate(st.session_state.messages):
                 st.toast("Thanks — we will look at this answer.")
 
 # ---- new question ----------------------------------------------------------------
-question = st.chat_input("Ask about fees, offices or the handbook…") or st.session_state.pop("pending", None)
+question = st.chat_input("Ask in English about fees, offices or the handbook…") or st.session_state.pop("pending", None)
 if question:
     problem = validate_input(question)
     if problem:
