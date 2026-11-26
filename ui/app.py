@@ -9,7 +9,7 @@ from pathlib import Path
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so "import ui..." works under streamlit
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # so "import ui..." works under streamlit
 
 from ui.api_client import AssistantClient
 from ui.logic import EXAMPLES, WELCOME, format_sources, status_note, validate_input
@@ -67,9 +67,15 @@ if question:
         with st.spinner("Thinking…"):
             result = client.ask(question, st.session_state.session_id)
         if result.ok:
-            st.session_state.messages.append({"role": "assistant", "content": result.answer,
-                                              "sources": format_sources(result.sources),
-                                              "note": status_note(result), "request_id": result.request_id})
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": result.answer,
+                    "sources": format_sources(result.sources),
+                    "note": status_note(result),
+                    "request_id": result.request_id,
+                }
+            )
         else:
             st.session_state.messages.append({"role": "assistant", "content": f"⚠️ {result.error}"})
         st.rerun()
