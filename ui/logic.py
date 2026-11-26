@@ -4,7 +4,8 @@ from __future__ import annotations
 from ui.api_client import ChatResult
 
 WELCOME = (
-    "Hi! I can answer questions about fees, offices and the student handbook. "
+    "Hi! I can answer questions about fees, offices and the student handbook "
+    "(English only / hiện chỉ hỗ trợ tiếng Anh). "
     "Try: “Can I register my thesis with 118 credits?”"
 )
 EXAMPLES = [
@@ -14,6 +15,10 @@ EXAMPLES = [
     "I lost my student card",
 ]
 
+_VIETNAMESE_CHARS = frozenset(
+    "àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ"
+)
+
 
 def validate_input(text: str) -> str | None:
     """Return an error message for bad input, or None if it is fine."""
@@ -22,6 +27,11 @@ def validate_input(text: str) -> str | None:
         return "Please type a question."
     if len(t) > 2000:
         return "Your question is too long (max 2000 characters)."
+    if any(ch in _VIETNAMESE_CHARS for ch in t.lower()):
+        return (
+            "Please ask in English — this assistant only supports English documents "
+            "(hiện chỉ hỗ trợ tiếng Anh)."
+        )
     return None
 
 
